@@ -246,3 +246,62 @@ CREATE TRIGGER set_symptoms_updated_at
   BEFORE UPDATE ON public.symptoms
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_symptoms_updated();
+
+-- ------------------------------------------------------------------------------
+-- 4. REMINDERS TABLE (Phase 6 & Phase 7)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.reminders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  enabled BOOLEAN NOT NULL DEFAULT false,
+  reminder_days_before INTEGER NOT NULL DEFAULT 2,
+  reminder_time TIME NOT NULL DEFAULT '09:00:00',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+
+  CONSTRAINT reminder_days_check CHECK (reminder_days_before >= 1 AND reminder_days_before <= 14)
+);
+
+CREATE INDEX IF NOT EXISTS reminders_user_id_idx ON public.reminders(user_id);
+
+ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
+
+-- Reminders RLS Policies
+DROP POLICY IF EXISTS "Users can read own reminders" ON public.reminders;
+CREATE POLICY "Users can read own reminders"
+  ON public.reminders FOR SELECT
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own reminders" ON public.reminders;
+CREATE POLICY "Users can insert own reminders"
+  ON public.reminders FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own reminders" ON public.reminders;
+CREATE POLICY "Users can update own reminders"
+  ON public.reminders FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own reminders" ON public.reminders;
+CREATE POLICY "Users can delete own reminders"
+  ON public.reminders FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Auto-update updated_at timestamp on reminders update
+CREATE OR REPLACE FUNCTION public.handle_reminders_updated()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at = timezone('utc'::text, now());
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS set_reminders_updated_at ON public.reminders;
+CREATE TRIGGER set_reminders_updated_at
+  BEFORE UPDATE ON public.reminders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_reminders_updated();
+

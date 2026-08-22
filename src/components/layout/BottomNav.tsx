@@ -6,6 +6,7 @@ import {
   PlusCircle,
   History,
   Sparkles,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -36,6 +37,11 @@ export const BottomNav: React.FC = () => {
       label: 'Insights',
       path: '/app/insights',
       icon: Sparkles,
+    },
+    {
+      label: 'Settings',
+      path: '/app/settings',
+      icon: Settings,
     },
   ];
 

@@ -7,10 +7,12 @@ import { Badge } from '@/components/ui/Badge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { cn } from '@/utils/cn';
 import { useCycles } from '@/context/CycleContext';
+import { useSymptoms } from '@/context/SymptomContext';
 import { formatDateDisplay } from '@/utils/cycleCalculations';
 
 export const CalendarPage: React.FC = () => {
   const { cycles, prediction } = useCycles();
+  const { symptoms } = useSymptoms();
 
   // Navigation state (year and month 0-indexed)
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -87,6 +89,17 @@ export const CalendarPage: React.FC = () => {
     return set;
   }, [prediction]);
 
+  // Symptom data mapping by date
+  const recordedSymptomDays = useMemo(() => {
+    const map = new Map<string, any[]>();
+    symptoms.forEach((s) => {
+      const date = s.symptom_date;
+      if (!map.has(date)) map.set(date, []);
+      map.get(date)!.push(s);
+    });
+    return map;
+  }, [symptoms]);
+
   const todayStr = useMemo(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -98,21 +111,21 @@ export const CalendarPage: React.FC = () => {
     const isRecorded = recordedPeriodDays.has(selectedDayString);
     const isEstimated = estimatedNextPeriodDays.has(selectedDayString);
     const isToday = selectedDayString === todayStr;
-
     const associatedCycle = cycles.find((c) => {
       return (
         selectedDayString >= c.start_date &&
         (c.end_date ? selectedDayString <= c.end_date : selectedDayString === c.start_date)
       );
     });
-
+    const symptomEntries = recordedSymptomDays.get(selectedDayString) || [];
     return {
       isRecorded,
       isEstimated,
       isToday,
       associatedCycle,
+      symptomEntries,
     };
-  }, [selectedDayString, recordedPeriodDays, estimatedNextPeriodDays, todayStr, cycles]);
+  }, [selectedDayString, recordedPeriodDays, estimatedNextPeriodDays, todayStr, cycles, recordedSymptomDays]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -121,9 +134,7 @@ export const CalendarPage: React.FC = () => {
         subtitle="Track recorded period days and review estimated upcoming dates."
         action={
           <Link to="/app/track">
-            <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />}>
-              Record Period
-            </Button>
+            <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />}>Record Period</Button>
           </Link>
         }
       />
@@ -180,6 +191,7 @@ export const CalendarPage: React.FC = () => {
             const isSelected = dateStr === selectedDayString;
             const isPeriod = recordedPeriodDays.has(dateStr);
             const isEstimated = estimatedNextPeriodDays.has(dateStr);
+            const hasSymptom = recordedSymptomDays.has(dateStr);
 
             return (
               <div
@@ -194,7 +206,7 @@ export const CalendarPage: React.FC = () => {
                     ? 'bg-blush-50 text-blush-700 border border-dashed border-blush-300 hover:bg-blush-100'
                     : isToday
                     ? 'bg-slate-100 text-slate-900 font-bold border border-slate-300'
-                    : 'text-slate-700 hover:bg-slate-100/80'
+                    : 'text-slate-700 hover:bg-slate-100/80',
                 )}
               >
                 <span>{day}</span>
@@ -203,6 +215,9 @@ export const CalendarPage: React.FC = () => {
                 )}
                 {isPeriod && (
                   <span className="w-1 h-1 rounded-full bg-white mt-0.5" />
+                )}
+                {hasSymptom && (
+                  <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-500" />
                 )}
               </div>
             );
@@ -223,6 +238,10 @@ export const CalendarPage: React.FC = () => {
             <span className="w-3 h-3 rounded-full bg-slate-200 border border-slate-400" />
             <span className="text-slate-600 font-medium">Current Date</span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-emerald-500" />
+            <span className="text-slate-600 font-medium">Logged Symptom</span>
+          </div>
         </div>
       </Card>
 
@@ -230,9 +249,7 @@ export const CalendarPage: React.FC = () => {
       <Card variant="outline" className="p-5 space-y-3 bg-white">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-slate-900 text-base">
-              {formatDateDisplay(selectedDayString)}
-            </h3>
+            <h3 className="font-bold text-slate-900 text-base">{formatDateDisplay(selectedDayString)}</h3>
             <p className="text-xs text-slate-500 mt-0.5">
               {selectedStatus?.isToday
                 ? 'Today'
@@ -246,17 +263,11 @@ export const CalendarPage: React.FC = () => {
 
           <div>
             {selectedStatus?.isRecorded ? (
-              <Badge variant="blush" size="md">
-                Period Recorded
-              </Badge>
+              <Badge variant="blush" size="md">Period Recorded</Badge>
             ) : selectedStatus?.isEstimated ? (
-              <Badge variant="coral" size="md">
-                Estimated Period
-              </Badge>
+              <Badge variant="coral" size="md">Estimated Period</Badge>
             ) : (
-              <Badge variant="slate" size="md">
-                Regular Day
-              </Badge>
+              <Badge variant="slate" size="md">Regular Day</Badge>
             )}
           </div>
         </div>
@@ -273,14 +284,37 @@ export const CalendarPage: React.FC = () => {
           </div>
         )}
 
+        {/* Symptom list for the selected day */}
+        {selectedStatus?.symptomEntries && selectedStatus.symptomEntries.length > 0 && (
+          <div className="mt-3 space-y-2">
+            <h4 className="text-sm font-medium text-slate-800">Symptoms</h4>
+            <ul className="space-y-1 text-xs">
+              {selectedStatus.symptomEntries.map((s) => (
+                <li key={s.id} className="flex items-center justify-between">
+                  <span>{s.symptom}</span>
+                  <div className="flex items-center gap-2">
+                    {s.severity && <Badge variant="coral" size="sm">{s.severity}</Badge>}
+                    {s.notes && <span className="text-slate-500 italic">{s.notes}</span>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="pt-2 flex gap-2">
           <Link to={`/app/track?edit=${selectedStatus?.associatedCycle?.id || ''}`}>
             <Button size="sm" variant={selectedStatus?.isRecorded ? 'outline' : 'primary'}>
               {selectedStatus?.isRecorded ? 'Edit This Period' : 'Log Period Starting This Day'}
             </Button>
           </Link>
+          <Link to="/app/track">
+            <Button size="sm" variant="secondary" leftIcon={<Plus className="w-4 h-4" />}>Add Symptom</Button>
+          </Link>
         </div>
       </Card>
     </div>
   );
 };
+
+export default CalendarPage;

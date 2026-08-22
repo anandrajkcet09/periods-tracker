@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { DevNavSwitcher } from '@/components/layout/DevNavSwitcher';
-import { ShieldCheck, Heart, Lock } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export const PublicLayout: React.FC = () => {
   return (
@@ -22,16 +22,14 @@ export const PublicLayout: React.FC = () => {
             <span>— Privacy-First Period Tracker</span>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-1.5 text-emerald-700 font-medium">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Zero-Tracker Architecture</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-slate-600">
-              <Lock className="w-3.5 h-3.5" />
-              <span>Encrypted Storage</span>
-            </div>
-            <Link to="/app/dashboard" className="text-blush-600 hover:underline">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            <Link to="/privacy" className="text-slate-600 hover:text-blush-600 hover:underline">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="text-slate-600 hover:text-blush-600 hover:underline">
+              Terms of Service
+            </Link>
+            <Link to="/app/dashboard" className="text-blush-600 font-medium hover:underline">
               Launch App →
             </Link>
           </div>

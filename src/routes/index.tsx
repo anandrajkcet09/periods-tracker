@@ -15,6 +15,8 @@ import { SignupPage } from '@/pages/public/SignupPage';
 import { VerifyEmailPage } from '@/pages/public/VerifyEmailPage';
 import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage';
+import { PrivacyPage } from '@/pages/public/PrivacyPage';
+import { TermsPage } from '@/pages/public/TermsPage';
 
 // Authenticated Pages
 import { DashboardPage } from '@/pages/app/DashboardPage';
@@ -23,6 +25,7 @@ import { TrackPeriodPage } from '@/pages/app/TrackPeriodPage';
 import { HistoryPage } from '@/pages/app/HistoryPage';
 import { InsightsPage } from '@/pages/app/InsightsPage';
 import { ProfilePage } from '@/pages/app/ProfilePage';
+import { SettingsPage } from '@/pages/app/SettingsPage';
 
 export const router = createBrowserRouter([
   // Public Route Group
@@ -40,8 +43,19 @@ export const router = createBrowserRouter([
       { path: '/verify-email', element: <VerifyEmailPage /> },
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/privacy', element: <PrivacyPage /> },
+      { path: '/terms', element: <TermsPage /> },
     ],
   },
+
+  // Direct route shortcuts -> redirecting to /app/*
+  { path: '/dashboard', element: <Navigate to="/app/dashboard" replace /> },
+  { path: '/calendar', element: <Navigate to="/app/calendar" replace /> },
+  { path: '/track', element: <Navigate to="/app/track" replace /> },
+  { path: '/history', element: <Navigate to="/app/history" replace /> },
+  { path: '/insights', element: <Navigate to="/app/insights" replace /> },
+  { path: '/profile', element: <Navigate to="/app/profile" replace /> },
+  { path: '/settings', element: <Navigate to="/app/settings" replace /> },
 
   // Authenticated Protected App Route Group
   {
@@ -58,6 +72,7 @@ export const router = createBrowserRouter([
           { path: 'history', element: <HistoryPage /> },
           { path: 'insights', element: <InsightsPage /> },
           { path: 'profile', element: <ProfilePage /> },
+          { path: 'settings', element: <SettingsPage /> },
         ],
       },
     ],

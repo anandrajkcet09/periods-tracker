@@ -3,12 +3,15 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './routes';
 import { AuthProvider } from './context/AuthContext';
 import { CycleProvider } from './context/CycleContext';
+import { SymptomProvider } from './context/SymptomContext';
 
 export const App: React.FC = () => {
   return (
     <AuthProvider>
       <CycleProvider>
-        <RouterProvider router={router} />
+        <SymptomProvider>
+          <RouterProvider router={router} />
+        </SymptomProvider>
       </CycleProvider>
     </AuthProvider>
   );
