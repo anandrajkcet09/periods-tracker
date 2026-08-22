@@ -1,0 +1,95 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        blush: {
+          50: '#fff5f7',
+          100: '#ffeef2',
+          200: '#ffd6e1',
+          300: '#ffb3c7',
+          400: '#fa80a3',
+          500: '#f45080',
+          600: '#e12b62',
+          700: '#be1b4e',
+          800: '#9e1844',
+          900: '#84193d',
+        },
+        sage: {
+          50: '#f4f8f6',
+          100: '#e6f1ec',
+          200: '#cfe4db',
+          300: '#a7cfbf',
+          400: '#7ab39c',
+          500: '#56977e',
+          600: '#417964',
+          700: '#356151',
+          800: '#2d4e42',
+          900: '#264239',
+        },
+        lavender: {
+          50: '#f8f7fd',
+          100: '#f0effb',
+          200: '#e2e0f8',
+          300: '#cac5f1',
+          400: '#aba1e7',
+          500: '#8d7bdc',
+          600: '#735bc9',
+          700: '#5e48ad',
+          800: '#4f3c8e',
+          900: '#433475',
+        },
+        coral: {
+          50: '#fff7f5',
+          100: '#ffece6',
+          200: '#ffd5c7',
+          300: '#ffb299',
+          400: '#ff7f59',
+          500: '#f85626',
+          600: '#e8390e',
+          700: '#c22c0b',
+        },
+      },
+      fontFamily: {
+        sans: [
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'sans-serif',
+        ],
+      },
+      borderRadius: {
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+        '4xl': '2rem',
+      },
+      boxShadow: {
+        'soft-sm': '0 2px 8px -2px rgba(0, 0, 0, 0.04)',
+        'soft': '0 6px 20px -4px rgba(0, 0, 0, 0.06)',
+        'soft-lg': '0 12px 32px -6px rgba(0, 0, 0, 0.08)',
+        'glow-pink': '0 0 24px -4px rgba(244, 80, 128, 0.25)',
+        'glow-sage': '0 0 24px -4px rgba(86, 151, 126, 0.25)',
+      },
+      animation: {
+        'pulse-gentle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fadeIn 0.25s ease-out forwards',
+        'slide-up': 'slideUp 0.3s ease-out forwards',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+};
