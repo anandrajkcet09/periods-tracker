@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Plus,
@@ -9,6 +9,8 @@ import {
   AlertCircle,
   FileText,
   Loader2,
+  Activity,
+  Droplet,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -16,18 +18,23 @@ import { Badge } from '@/components/ui/Badge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Modal } from '@/components/ui/Modal';
 import { useCycles } from '@/context/CycleContext';
+import { useSymptoms } from '@/context/SymptomContext';
 import { formatDateDisplay } from '@/utils/cycleCalculations';
 import { CycleRecord } from '@/types';
+import { cn } from '@/utils/cn';
 
 export const HistoryPage: React.FC = () => {
-  const { cycles, avgCycleLength, avgPeriodDuration, removeCycle, loading } = useCycles();
+  const { cycles, avgCycleLength, avgPeriodDuration, removeCycle, loading: cyclesLoading } = useCycles();
+  const { symptoms, removeSymptom, loading: symptomsLoading } = useSymptoms();
 
-  // Delete modal state
+  const [activeTab, setActiveTab] = useState<'cycles' | 'symptoms'>('cycles');
+
+  // Delete cycle modal state
   const [cycleToDelete, setCycleToDelete] = useState<CycleRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const confirmDelete = async () => {
+  const confirmDeleteCycle = async () => {
     if (!cycleToDelete) return;
     setIsDeleting(true);
     setDeleteError(null);
@@ -42,86 +49,118 @@ export const HistoryPage: React.FC = () => {
     }
   };
 
+  // Grouped symptoms by date
+  const groupedSymptoms = useMemo(() => {
+    const map = new Map<string, typeof symptoms>();
+    symptoms.forEach((s) => {
+      if (!map.has(s.symptom_date)) map.set(s.symptom_date, []);
+      map.get(s.symptom_date)!.push(s);
+    });
+    return Array.from(map.entries()).sort(
+      (a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime()
+    );
+  }, [symptoms]);
+
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 animate-fade-in pb-16">
       <PageHeader
-        title="Cycle History"
-        subtitle="Review, edit, or delete previously recorded menstrual cycles."
+        title="History"
+        subtitle="Review, edit, and manage all your previously recorded periods and symptoms."
         action={
           <Link to="/app/track">
             <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />}>
-              Record Period
+              + Record Entry
             </Button>
           </Link>
         }
       />
 
       {/* Summary Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <Card variant="outline" className="p-4 text-center bg-white">
-          <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
-            Total Recorded
+      <div className="grid grid-cols-3 gap-3">
+        <Card variant="outline" className="p-3.5 sm:p-4 text-center bg-white">
+          <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+            Cycles Logged
           </span>
-          <p className="text-xl font-bold text-slate-900 mt-1">
-            {cycles.length} {cycles.length === 1 ? 'Cycle' : 'Cycles'}
+          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
+            {cycles.length}
           </p>
         </Card>
-        <Card variant="outline" className="p-4 text-center bg-white">
-          <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
-            Avg Cycle Length
+        <Card variant="outline" className="p-3.5 sm:p-4 text-center bg-white">
+          <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+            Avg Cycle
           </span>
-          <p className="text-xl font-bold text-slate-900 mt-1">
-            {avgCycleLength} Days
+          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
+            {avgCycleLength} <span className="text-xs text-slate-400 font-normal">Days</span>
           </p>
         </Card>
-        <Card variant="outline" className="p-4 text-center bg-white col-span-2 sm:col-span-1">
-          <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
-            Avg Period Duration
+        <Card variant="outline" className="p-3.5 sm:p-4 text-center bg-white">
+          <span className="text-[10px] sm:text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+            Avg Period
           </span>
-          <p className="text-xl font-bold text-blush-600 mt-1">
-            {avgPeriodDuration} Days
+          <p className="text-lg sm:text-xl font-bold text-rose-600 mt-0.5">
+            {avgPeriodDuration} <span className="text-xs text-slate-400 font-normal">Days</span>
           </p>
         </Card>
       </div>
 
-      {/* History List */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-slate-500" />
-            <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Recorded Cycles (Chronological)
-            </h3>
-          </div>
-        </div>
+      {/* View Switcher Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200">
+        <button
+          type="button"
+          onClick={() => setActiveTab('cycles')}
+          className={cn(
+            'px-4 py-2 text-sm font-semibold border-b-2 transition-all select-none flex items-center gap-1.5',
+            activeTab === 'cycles'
+              ? 'border-rose-600 text-rose-600'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          )}
+        >
+          <Droplet className="w-4 h-4" />
+          <span>Periods ({cycles.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('symptoms')}
+          className={cn(
+            'px-4 py-2 text-sm font-semibold border-b-2 transition-all select-none flex items-center gap-1.5',
+            activeTab === 'symptoms'
+              ? 'border-emerald-600 text-emerald-600'
+              : 'border-transparent text-slate-500 hover:text-slate-900'
+          )}
+        >
+          <Activity className="w-4 h-4" />
+          <span>Symptoms ({symptoms.length})</span>
+        </button>
+      </div>
 
-        {loading ? (
-          <Card className="p-8 text-center bg-white border border-slate-100">
-            <p className="text-xs text-slate-400">Loading cycle history...</p>
-          </Card>
-        ) : cycles.length === 0 ? (
-          <Card className="p-8 text-center space-y-4 bg-white border border-slate-100">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-              <Calendar className="w-6 h-6" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-800">No History Recorded</h3>
-              <p className="text-xs text-slate-500">
-                You haven't logged any menstrual cycles yet. Record your first period to start tracking.
-              </p>
-            </div>
-            <Link to="/app/track">
-              <Button size="md" variant="primary">
-                Record First Period
-              </Button>
-            </Link>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {cycles.map((cycle) => (
+      {/* 1. CYCLES LIST TAB */}
+      {activeTab === 'cycles' && (
+        <div className="space-y-3">
+          {cyclesLoading ? (
+            <Card className="p-8 text-center bg-white border border-slate-100">
+              <p className="text-xs text-slate-400">Loading cycle records...</p>
+            </Card>
+          ) : cycles.length === 0 ? (
+            <Card className="p-8 text-center space-y-4 bg-white border border-slate-100">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-400 flex items-center justify-center mx-auto">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-800">No Cycles Recorded</h3>
+                <p className="text-xs text-slate-500">
+                  Record your period start and end dates to build your cycle timeline.
+                </p>
+              </div>
+              <Link to="/app/track">
+                <Button size="md" variant="primary">
+                  Record First Period
+                </Button>
+              </Link>
+            </Card>
+          ) : (
+            cycles.map((cycle) => (
               <Card
                 key={cycle.id}
-                variant="default"
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-100 shadow-soft"
               >
                 <div className="space-y-2 flex-1">
@@ -135,7 +174,7 @@ export const HistoryPage: React.FC = () => {
                     </span>
                     {!cycle.end_date && (
                       <Badge variant="coral" size="sm">
-                        Ongoing Period
+                        Ongoing
                       </Badge>
                     )}
                   </div>
@@ -147,7 +186,7 @@ export const HistoryPage: React.FC = () => {
                       </span>
                       <strong className="text-slate-900 font-bold">
                         {cycle.period_duration
-                          ? `${cycle.period_duration} ${cycle.period_duration === 1 ? 'Day' : 'Days (Inclusive)'}`
+                          ? `${cycle.period_duration} Days`
                           : 'Ongoing'}
                       </strong>
                     </div>
@@ -187,10 +226,81 @@ export const HistoryPage: React.FC = () => {
                   </Button>
                 </div>
               </Card>
-            ))}
-          </div>
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* 2. SYMPTOMS LIST TAB */}
+      {activeTab === 'symptoms' && (
+        <div className="space-y-3">
+          {symptomsLoading ? (
+            <Card className="p-8 text-center bg-white border border-slate-100">
+              <p className="text-xs text-slate-400">Loading symptom logs...</p>
+            </Card>
+          ) : symptoms.length === 0 ? (
+            <Card className="p-8 text-center space-y-4 bg-white border border-slate-100">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto">
+                <Activity className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-800">No Symptoms Recorded</h3>
+                <p className="text-xs text-slate-500">
+                  Select and save symptoms anytime on the Track page.
+                </p>
+              </div>
+              <Link to="/app/track">
+                <Button size="md" variant="secondary">
+                  Log Symptoms
+                </Button>
+              </Link>
+            </Card>
+          ) : (
+            groupedSymptoms.map(([dateStr, items]) => (
+              <Card key={dateStr} className="p-4 space-y-3 bg-white border border-slate-100 shadow-soft">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-emerald-600" />
+                    <h3 className="text-sm font-bold text-slate-900">
+                      {formatDateDisplay(dateStr)}
+                    </h3>
+                  </div>
+                  <span className="text-xs text-slate-400">
+                    {items.length} {items.length === 1 ? 'symptom' : 'symptoms'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {items.map((s) => (
+                    <div
+                      key={s.id}
+                      className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <span className="font-semibold text-slate-800">{s.symptom}</span>
+                        {s.severity && (
+                          <Badge variant="coral" size="sm" className="ml-2">
+                            {s.severity}
+                          </Badge>
+                        )}
+                        {s.notes && <p className="text-slate-500 italic mt-0.5">"{s.notes}"</p>}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeSymptom(s.id)}
+                        aria-label={`Delete symptom ${s.symptom}`}
+                        className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -234,7 +344,7 @@ export const HistoryPage: React.FC = () => {
             <Button
               variant="danger"
               size="md"
-              onClick={confirmDelete}
+              onClick={confirmDeleteCycle}
               disabled={isDeleting}
               leftIcon={
                 isDeleting ? (

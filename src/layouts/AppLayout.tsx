@@ -2,14 +2,12 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { DevNavSwitcher } from '@/components/layout/DevNavSwitcher';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { OfflineBanner } from '@/components/OfflineBanner';
 
 const AppLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 pb-20 md:pb-8">
-      <DevNavSwitcher />
       <OfflineBanner />
       <AppHeader />
 
@@ -24,4 +22,3 @@ const AppLayout: React.FC = () => {
 };
 
 export { AppLayout };
-

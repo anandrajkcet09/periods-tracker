@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'blush' | 'sage' | 'lavender' | 'slate' | 'coral' | 'outline';
+  variant?: 'blush' | 'sage' | 'lavender' | 'slate' | 'coral' | 'outline' | 'sky' | 'purple' | 'amber';
   size?: 'sm' | 'md';
   icon?: React.ReactNode;
 }
@@ -16,10 +16,13 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const variants = {
-    blush: 'bg-blush-50 text-blush-700 border-blush-200/60',
-    sage: 'bg-sage-50 text-sage-700 border-sage-200/60',
-    lavender: 'bg-lavender-50 text-lavender-700 border-lavender-200/60',
-    coral: 'bg-coral-50 text-coral-700 border-coral-200/60',
+    blush: 'bg-rose-50 text-rose-700 border-rose-200/80',
+    sage: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+    lavender: 'bg-purple-50 text-purple-700 border-purple-200/80',
+    purple: 'bg-purple-50 text-purple-700 border-purple-200/80',
+    sky: 'bg-sky-50 text-sky-700 border-sky-200/80',
+    amber: 'bg-amber-50 text-amber-700 border-amber-200/80',
+    coral: 'bg-rose-50 text-rose-700 border-rose-200/80',
     slate: 'bg-slate-100 text-slate-700 border-slate-200',
     outline: 'bg-white text-slate-600 border-slate-200',
   };

@@ -26,6 +26,7 @@ import { HistoryPage } from '@/pages/app/HistoryPage';
 import { InsightsPage } from '@/pages/app/InsightsPage';
 import { ProfilePage } from '@/pages/app/ProfilePage';
 import { SettingsPage } from '@/pages/app/SettingsPage';
+import { MorePage } from '@/pages/app/MorePage';
 
 export const router = createBrowserRouter([
   // Public Route Group
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
   { path: '/insights', element: <Navigate to="/app/insights" replace /> },
   { path: '/profile', element: <Navigate to="/app/profile" replace /> },
   { path: '/settings', element: <Navigate to="/app/settings" replace /> },
+  { path: '/more', element: <Navigate to="/app/more" replace /> },
 
   // Authenticated Protected App Route Group
   {
@@ -73,6 +75,7 @@ export const router = createBrowserRouter([
           { path: 'insights', element: <InsightsPage /> },
           { path: 'profile', element: <ProfilePage /> },
           { path: 'settings', element: <SettingsPage /> },
+          { path: 'more', element: <MorePage /> },
         ],
       },
     ],

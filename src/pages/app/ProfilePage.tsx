@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Shield,
-  Lock,
   Download,
-  Trash2,
   LogOut,
-  Bell,
-  Smartphone,
   UserCheck,
   Calendar,
   Loader2,
@@ -17,14 +12,15 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useAuth } from '@/context/AuthContext';
+import { useCycles } from '@/context/CycleContext';
+import { useSymptoms } from '@/context/SymptomContext';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { cycles } = useCycles();
+  const { symptoms } = useSymptoms();
 
-  const [pinLockEnabled, setPinLockEnabled] = useState(false);
-  const [remindersEnabled, setRemindersEnabled] = useState(true);
-  const [incognitoMode, setIncognitoMode] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -39,7 +35,27 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  const username = profile?.username || user?.user_metadata?.username || 'anonymous_user';
+  const handleExportData = () => {
+    const exportPayload = {
+      exportedAt: new Date().toISOString(),
+      user: {
+        id: user?.id,
+        email: user?.email,
+        username: profile?.username || user?.user_metadata?.username,
+      },
+      cycles,
+      symptoms,
+    };
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aura-period-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const username = profile?.username || user?.user_metadata?.username || 'Private User';
   const email = user?.email || 'No email associated';
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('en-US', {
@@ -49,21 +65,23 @@ export const ProfilePage: React.FC = () => {
     : 'Aug 2026';
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 animate-fade-in pb-16">
       <PageHeader
-        title="Settings & Privacy"
-        subtitle="Manage your encrypted vault, preferences, and data ownership."
+        title="Profile &amp; Vault Security"
+        subtitle="Manage your encrypted profile, data sovereignty, and security settings."
+        showBack
+        backUrl="/app/more"
       />
 
       {/* Account Info Card */}
-      <Card className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-100 shadow-soft">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blush-500 to-coral-400 text-white flex items-center justify-center font-bold text-xl uppercase shadow-soft">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-500 to-coral-400 text-white flex items-center justify-center font-bold text-xl uppercase shadow-soft">
             {username.charAt(0)}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-1.5">
+              <h3 className="font-bold text-slate-900 text-base">
                 @{username}
               </h3>
               <Badge variant="sage" size="sm">
@@ -88,84 +106,15 @@ export const ProfilePage: React.FC = () => {
         </Button>
       </Card>
 
-      {/* Privacy & Security Controls */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-emerald-600" />
-          <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Privacy & Security Vault
-          </h3>
-        </div>
-
-        <Card className="divide-y divide-slate-100 p-0 overflow-hidden bg-white">
-          {/* PIN Lock Toggle */}
-          <div className="p-4 flex items-center justify-between">
-            <div className="space-y-0.5 pr-4">
-              <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-slate-700" />
-                <span className="text-sm font-semibold text-slate-900">App Passcode Lock</span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Require a 4-digit PIN every time the app opens.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={pinLockEnabled}
-              onChange={(e) => setPinLockEnabled(e.target.checked)}
-              className="w-4 h-4 text-blush-600 rounded border-slate-300 focus:ring-blush-500 cursor-pointer"
-            />
-          </div>
-
-          {/* Incognito Discreet Mode */}
-          <div className="p-4 flex items-center justify-between">
-            <div className="space-y-0.5 pr-4">
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-slate-700" />
-                <span className="text-sm font-semibold text-slate-900">Discreet Icon & Title</span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Mask app name as a simple notebook icon on your home screen.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={incognitoMode}
-              onChange={(e) => setIncognitoMode(e.target.checked)}
-              className="w-4 h-4 text-blush-600 rounded border-slate-300 focus:ring-blush-500 cursor-pointer"
-            />
-          </div>
-
-          {/* Gentle Reminders */}
-          <div className="p-4 flex items-center justify-between">
-            <div className="space-y-0.5 pr-4">
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-slate-700" />
-                <span className="text-sm font-semibold text-slate-900">Period & Phase Reminders</span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Local, on-device notifications 2 days before predicted period.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={remindersEnabled}
-              onChange={(e) => setRemindersEnabled(e.target.checked)}
-              className="w-4 h-4 text-blush-600 rounded border-slate-300 focus:ring-blush-500 cursor-pointer"
-            />
-          </div>
-        </Card>
-      </div>
-
       {/* Row Level Security Guarantee Info */}
-      <Card variant="sage" className="p-4 space-y-2">
+      <Card className="p-5 space-y-2 bg-emerald-50/60 border border-emerald-100">
         <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs">
           <UserCheck className="w-4 h-4 text-emerald-600" />
-          <span>Row Level Security (RLS) Enforced</span>
+          <span>Row Level Security (RLS) Cryptographically Enforced</span>
         </div>
         <p className="text-xs text-slate-600 leading-relaxed">
-          Your profile and future menstrual logs are isolated using cryptographic Supabase RLS policies.
-          Only your authenticated user token can read or update your vault records.
+          Your profile, period dates, symptoms, and reminders are isolated using PostgreSQL RLS policies in Supabase.
+          Only your authenticated JWT session can read or modify your records.
         </p>
       </Card>
 
@@ -178,28 +127,21 @@ export const ProfilePage: React.FC = () => {
           </h3>
         </div>
 
-        <Card className="p-5 space-y-4 bg-white">
+        <Card className="p-5 space-y-4 bg-white border border-slate-100 shadow-soft">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h4 className="text-sm font-bold text-slate-900">Export All Data</h4>
               <p className="text-xs text-slate-500">
-                Download your complete profile and cycle records in JSON / CSV format.
+                Download your entire history (cycles, durations, notes, and symptoms) in JSON format.
               </p>
             </div>
-            <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />}>
-              Download Backup
-            </Button>
-          </div>
-
-          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h4 className="text-sm font-bold text-rose-600">Delete Vault & All Records</h4>
-              <p className="text-xs text-slate-500">
-                Permanently purge all data from this device and your encrypted store.
-              </p>
-            </div>
-            <Button variant="danger" size="sm" leftIcon={<Trash2 className="w-4 h-4" />}>
-              Wipe All Data
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportData}
+              leftIcon={<Download className="w-4 h-4" />}
+            >
+              Export JSON Backup
             </Button>
           </div>
         </Card>
@@ -207,8 +149,8 @@ export const ProfilePage: React.FC = () => {
 
       {/* Security & Version Note */}
       <div className="p-4 rounded-2xl bg-slate-100 text-xs text-slate-600 text-center space-y-1">
-        <p className="font-semibold text-slate-800">Aura v0.2.0 (Supabase Auth Active)</p>
-        <p>User ID: <code className="bg-slate-200 px-1 py-0.5 rounded text-[11px]">{user?.id || 'session-active'}</code></p>
+        <p className="font-semibold text-slate-800">Aura v1.0 • Privacy-First PWA</p>
+        <p>Authenticated Session: <code className="bg-slate-200 px-1.5 py-0.5 rounded text-[11px] font-mono">{user?.id?.slice(0, 16)}...</code></p>
       </div>
     </div>
   );

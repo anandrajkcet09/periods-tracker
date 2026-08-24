@@ -1,21 +1,20 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard,
+  Home,
   CalendarDays,
   PlusCircle,
   History,
-  Sparkles,
-  Settings,
+  MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 export const BottomNav: React.FC = () => {
   const navItems = [
     {
-      label: 'Today',
+      label: 'Home',
       path: '/app/dashboard',
-      icon: LayoutDashboard,
+      icon: Home,
     },
     {
       label: 'Calendar',
@@ -34,14 +33,9 @@ export const BottomNav: React.FC = () => {
       icon: History,
     },
     {
-      label: 'Insights',
-      path: '/app/insights',
-      icon: Sparkles,
-    },
-    {
-      label: 'Settings',
-      path: '/app/settings',
-      icon: Settings,
+      label: 'More',
+      path: '/app/more',
+      icon: MoreHorizontal,
     },
   ];
 
@@ -57,7 +51,7 @@ export const BottomNav: React.FC = () => {
               className={({ isActive }) =>
                 cn(
                   'flex flex-col items-center justify-center flex-1 py-1 transition-all duration-150 relative select-none',
-                  isActive ? 'text-blush-600 font-semibold' : 'text-slate-600 hover:text-slate-900',
+                  isActive ? 'text-rose-600 font-semibold' : 'text-slate-500 hover:text-slate-900',
                   item.highlight && '-mt-3'
                 )
               }
@@ -69,8 +63,8 @@ export const BottomNav: React.FC = () => {
                       className={cn(
                         'w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95',
                         isActive
-                          ? 'bg-blush-600 text-white shadow-glow-pink scale-105'
-                          : 'bg-blush-500 text-white hover:bg-blush-600'
+                          ? 'bg-rose-600 text-white shadow-glow-pink scale-105'
+                          : 'bg-rose-500 text-white hover:bg-rose-600'
                       )}
                     >
                       <Icon className="w-6 h-6" />
@@ -80,7 +74,7 @@ export const BottomNav: React.FC = () => {
                       <Icon
                         className={cn(
                           'w-5 h-5 transition-transform',
-                          isActive ? 'stroke-[2.5px] scale-110' : 'stroke-[1.75px]'
+                          isActive ? 'stroke-[2.5px] scale-110 text-rose-600' : 'stroke-[1.75px]'
                         )}
                       />
                       <span className="text-[10px] mt-1 tracking-tight">
