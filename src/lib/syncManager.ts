@@ -16,9 +16,9 @@ export async function runSync(userId: string): Promise<void> {
       await updateOperation(userId, op.id, { status: 'syncing' });
       // Dispatch to the appropriate service based on entity and type
       if (op.entity === 'cycle') {
-        await handleCycleOp(op);
+        await handleCycleOp(userId, op);
       } else if (op.entity === 'symptom') {
-        await handleSymptomOp(op);
+        await handleSymptomOp(userId, op);
       }
       // Success – remove from queue
       await removeOperation(userId, op.id);
@@ -39,33 +39,33 @@ export async function runSync(userId: string): Promise<void> {
   }
 }
 
-async function handleCycleOp(op: OfflineOperation): Promise<void> {
+async function handleCycleOp(userId: string, op: OfflineOperation): Promise<void> {
   const { type, payload } = op;
   switch (type) {
     case 'create':
-      await cycleService.createCycle(payload);
+      await cycleService.createCycle(userId, payload);
       break;
     case 'update':
       // payload should contain { id, changes }
-      await cycleService.updateCycle(payload.id, payload.changes);
+      await cycleService.updateCycle(userId, payload.id, payload.changes);
       break;
     case 'delete':
-      await cycleService.deleteCycle(payload.id);
+      await cycleService.deleteCycle(userId, payload.id);
       break;
   }
 }
 
-async function handleSymptomOp(op: OfflineOperation): Promise<void> {
+async function handleSymptomOp(userId: string, op: OfflineOperation): Promise<void> {
   const { type, payload } = op;
   switch (type) {
     case 'create':
-      await symptomService.createSymptom(payload);
+      await symptomService.createSymptom(userId, payload);
       break;
     case 'update':
-      await symptomService.updateSymptom(payload.id, payload.changes);
+      await symptomService.updateSymptom(userId, payload.id, payload.changes);
       break;
     case 'delete':
-      await symptomService.deleteSymptom(payload.id);
+      await symptomService.deleteSymptom(userId, payload.id);
       break;
   }
 }
